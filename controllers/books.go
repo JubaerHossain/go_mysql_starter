@@ -3,19 +3,19 @@ package controllers
 import (
 	"crud/models"
 	"net/http"
-
+	"gopkg.in/validator.v2"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
 
 type createBookRequest struct {
-	Title  string `json:"title"`
-	Author string `json:"author"`
+	Title  string `json:"title" validate:"min=1,max=16,regexp=^[a-zA-Z]*$"`
+	Author string `json:"author" validate:"min=1,max=16,regexp=^[a-zA-Z]*$"`
 }
 
 type UpdateBookRequest struct {
-	Title  string `json:"title"`
-	Author string `json:"author"`
+	Title  string `json:"title" validate:"min=1,max=16,regexp=^[a-zA-Z]*$"`
+	Author string `json:"author" validate:"min=1,max=16,regexp=^[a-zA-Z]*$"`
 }
 
 func FindBooks(c *gin.Context) {
@@ -28,8 +28,10 @@ func FindBooks(c *gin.Context) {
 func CreateBook(c *gin.Context) {
 	var request createBookRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		if err := validator.Validate(request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	db := c.MustGet("db").(*gorm.DB)
@@ -54,8 +56,10 @@ func FindBook(c *gin.Context) {
 func UpdateBook(c *gin.Context) {
 	var request UpdateBookRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		if err := validator.Validate(request); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	db := c.MustGet("db").(*gorm.DB)
